@@ -1,15 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 import requests
 import pandas
-import urllib.parse
+import urllib.parse # Replace %xx escapes by their single-character equivalent.
 import datetime
 
-world_name = 'ru66'
+world_name = 'ru70'
 world_server = 'https://' + world_name + '.voyna-plemyon.ru/map'
 world_data_url = ['/village.txt.gz', '/player.txt.gz', '/ally.txt.gz','/conquer.txt.gz','/kill_all.txt.gz','/kill_def.txt.gz','/kill_sup.txt.gz']
 pathname = 'dl'
@@ -21,25 +15,21 @@ for filename in world_data_url:
         r = requests.get(url)
         f.write(r.content)
 
-data_village = pandas.read_csv(pathname + '/village.txt.gz', compression='gzip', header=None, names=['village_id', 'village_name', 'xxx', 'yyy', 'player_id', 'village_points', 'rank'])
+data_village = pandas.read_csv(pathname + '/village.txt.gz', compression='gzip', header=None, keep_default_na=False, names=['village_id', 'village_name', 'xxx', 'yyy', 'player_id', 'village_points', 'rank'])
 for i in range(len(data_village.iloc[:, 1])):
-    data_village.iloc[i, 1] = urllib.parse.unquote(data_village.iloc[i, 1])
-    data_village.iloc[i, 1] = data_village.iloc[i, 1].replace('+',' ')
+    data_village.iloc[i, 1] = urllib.parse.unquote_plus(data_village.iloc[i, 1])
 
 #$player_id, $name, $tribe_id, $villages, $points, $rank
 data_player = pandas.read_csv(pathname + '/player.txt.gz', compression='gzip', header=None, names=['player_id', 'player_name', 'tribe_id', 'villages', 'player_points', 'rank'])
 for i in range(len(data_player.iloc[:, 1])):
-    data_player.iloc[i, 1] = urllib.parse.unquote(data_player.iloc[i, 1])
-    data_player.iloc[i, 1] = data_player.iloc[i, 1].replace('+',' ')
+    data_player.iloc[i, 1] = urllib.parse.unquote_plus(data_player.iloc[i, 1])
 
 #$tribe_id, $name, $tag, $members, $villages, $points, $all_points, $rank
 data_ally = pandas.read_csv(pathname+'/ally.txt.gz', compression='gzip', header=None,
                             names=['tribe_id', 'tribe_name', 'tag', 'members', 'villages', 'tribe_points', 'tribe_all_points', 'rank'])
 for i in range(len(data_ally.iloc[:, 1])):
-    data_ally.iloc[i, 1] = urllib.parse.unquote(data_ally.iloc[i, 1])
-    data_ally.iloc[i, 1] = data_ally.iloc[i, 1].replace('+',' ')
-    data_ally.iloc[i, 2] = urllib.parse.unquote(data_ally.iloc[i, 2])
-    data_ally.iloc[i, 2] = data_ally.iloc[i, 2].replace('+',' ')
+    data_ally.iloc[i, 1] = urllib.parse.unquote_plus(data_ally.iloc[i, 1])
+    data_ally.iloc[i, 2] = urllib.parse.unquote_plus(data_ally.iloc[i, 2])
     
 merge_village_player = data_village.merge(data_player,on='player_id')
 merge_village_player_ally = merge_village_player.merge(data_ally,on='tribe_id')
@@ -59,17 +49,10 @@ import pygsheets
 gc = pygsheets.authorize(service_file='client_secret.json')
 
 #open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
-sh = gc.open_by_key('1Sw0STylzcrdUv4k1y8OyCsg5C_CBlJddvZGNvwoCaoQ')
+sh = gc.open_by_key('1PQ4lrca7zkXg8x3WF4ADDR_Z5JqNXbwRjSl7_7EjXqA')
 
 #select the first sheet 
 wks = sh[0]
 
 #update the first sheet with df, starting at cell B2. 
 wks.set_dataframe(output_frame,(1,2))
-
-
-# In[ ]:
-
-
-
-
